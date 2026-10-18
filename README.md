@@ -85,10 +85,10 @@ Sample test output:
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | sort_by_time | by Time |
+| Filtering | filter_tasks | completion status and/or pet name |
+| Conflict handling | check_conflict | overlapping time slots |
+| Recurring tasks | next_occurrence | set next daily or weekly task|
 
 ## 📸 Demo Walkthrough
 

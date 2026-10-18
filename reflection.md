@@ -29,12 +29,16 @@
 **a. Constraints and priorities**
 
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
+    Time and Priority
 - How did you decide which constraints mattered most?
+    Preference was added but was not considered as much as Time and priority. certain task need to be completed at specific times like feeding each pet at breakfast or lunch.
+    Priority matters as well considering things like medication, these can't be left up to the owners preferred time schedule.
 
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
+    Initialy, there was a pet.add_task which seemed resonable for adding task to the pet. This was substituted in favor of a schduler.add_task as an encapsulating method for conflict detection across all pets and tasks.
 
 ---
 

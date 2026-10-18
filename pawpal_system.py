@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, replace
-from datetime import date, time
+from datetime import date, time, timedelta
 from uuid import uuid4
 
 VALID_CATEGORIES = {"walk", "feeding", "meds", "enrichment", "grooming"}
@@ -54,9 +54,31 @@ class Task:
         if self.recurrence not in VALID_RECURRENCES:
             raise ValueError("recurrence must be 'daily', 'weekly' or None")
 
-    def mark_complete(self) -> None:
-        """Mark this task as done."""
+    def mark_complete(self) -> "Task | None":
+        """Mark this task as done.
+
+        Returns a fresh copy for the next occurrence if the task recurs, else None.
+        The copy is not attached to a pet; use Pet.complete_task to add it automatically.
+        """
+        already_done = self.is_complete
         self.is_complete = True
+        return None if already_done else self.next_occurrence()
+
+    def next_occurrence(self) -> "Task | None":
+        """Return an incomplete copy due one day (daily) or seven days (weekly) later.
+
+        The new due date counts from this task's due_date, or from today if it has none.
+        Returns None if the task does not recur.
+        """
+        if self.recurrence is None:
+            return None
+        step = timedelta(days=1 if self.recurrence == "daily" else 7)
+        return replace(
+            self,
+            due_date=(self.due_date or date.today()) + step,
+            is_complete=False,
+            id=new_id(),
+        )
 
     def reset(self) -> None:
         """Mark this task as not done again."""
@@ -113,6 +135,20 @@ class Pet:
     def remove_task(self, task_id: str) -> None:
         """Remove the task with the given id, if this pet has it."""
         self.tasks = [task for task in self.tasks if task.id != task_id]
+
+    def complete_task(self, task_id: str) -> Task | None:
+        """Mark the task with the given id complete and add its next occurrence, if any.
+
+        Returns the new task, or None if the task doesn't recur, was already
+        complete, or this pet doesn't have it.
+        """
+        task = next((t for t in self.tasks if t.id == task_id), None)
+        if task is None:
+            return None
+        next_task = task.mark_complete()
+        if next_task is not None:
+            self.add_task(next_task)
+        return next_task
 
     def task_count(self) -> int:
         """Return the total number of tasks attached to this pet."""
@@ -181,7 +217,8 @@ class Scheduler:
         scheduled, skipped = self._fit_to_available_time(ranked)
         self.last_skipped = skipped
         # Timed tasks in clock order first; flexible tasks keep their ranked order after.
-        scheduled.sort(key=lambda item: (item[0].start_time is None, item[0].start_time or time.min))
+        order = {task.id: i for i, task in enumerate(self.sort_by_time([t for t, _ in scheduled]))}
+        scheduled.sort(key=lambda item: order[item[0].id])
         return scheduled
 
     def explain_plan(self, plan: list[tuple[Task, str]]) -> str:
@@ -262,6 +299,62 @@ class Scheduler:
                 if task.start_time:
                     timed.append(task)
         return scheduled, skipped
+
+    def check_conflict(self, task: Task) -> str | None:
+        """Return a warning if task's time overlaps an existing pending task, else None.
+
+        Checks tasks across all of the owner's pets. Tasks only conflict when their
+        due dates match; a task with no due_date is treated as due on any date.
+        """
+        if task.start_time is None:
+            return None
+        others = [
+            other
+            for other in self.owner.get_all_tasks()
+            if other is not task
+            and not other.is_complete
+            and (other.due_date == task.due_date or None in (other.due_date, task.due_date))
+        ]
+        clash = self._find_clash(task, [other for other in others if other.start_time])
+        if clash is None:
+            return None
+        pet = self.owner.get_pet(clash.pet_id)
+        whose = f" ({pet.name})" if pet else ""
+        return (
+            f"Warning: {task.title} at {format_time(task.start_time)} for "
+            f"{task.duration_minutes} min overlaps {clash.title}{whose} at "
+            f"{format_time(clash.start_time)} for {clash.duration_minutes} min"
+        )
+
+    def add_task(self, pet: Pet, task: Task) -> str | None:
+        """Add task to pet and return a conflict warning, or None if there is none.
+
+        A conflict never blocks the add or raises; the task is always added.
+        """
+        warning = self.check_conflict(task)
+        pet.add_task(task)
+        return warning
+
+    def filter_tasks(
+        self, is_complete: bool | None = None, pet_name: str | None = None
+    ) -> list[Task]:
+        """Return the owner's tasks matching the given completion status and/or pet name.
+
+        A filter left as None is not applied. Pet names are matched case-insensitively.
+        """
+        tasks = []
+        for pet in self.owner.pets:
+            if pet_name is not None and pet.name.strip().lower() != pet_name.strip().lower():
+                continue
+            tasks.extend(pet.tasks)
+        if is_complete is not None:
+            tasks = [task for task in tasks if task.is_complete == is_complete]
+        return tasks
+
+    @staticmethod
+    def sort_by_time(tasks: list[Task]) -> list[Task]:
+        """Return tasks in clock order by start_time; tasks with no start_time go last."""
+        return sorted(tasks, key=lambda task: (task.start_time is None, task.start_time or time.min))
 
     @staticmethod
     def _find_clash(task: Task, timed: list[Task]) -> Task | None:
