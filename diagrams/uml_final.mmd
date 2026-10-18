@@ -1,0 +1,70 @@
+classDiagram
+    class Task {
+        +str title
+        +str category
+        +int duration_minutes
+        +int priority
+        +str preferred_time
+        +time start_time
+        +date due_date
+        +str recurrence
+        +bool is_complete
+        +str id
+        +str pet_id
+        +mark_complete() Task
+        +next_occurrence() Task
+        +reset()
+        +is_due(on_date) str
+        +edit(changes)
+    }
+
+    class Pet {
+        +str name
+        +str species
+        +int age
+        +list~str~ special_needs
+        +list~Task~ tasks
+        +str id
+        +add_task(task)
+        +remove_task(task_id)
+        +complete_task(task_id) Task
+        +task_count() int
+        +get_pending_tasks() list~Task~
+        +get_tasks_by_category(category) list~Task~
+    }
+
+    class Owner {
+        +str name
+        +int available_minutes
+        +dict preferences
+        +list~Pet~ pets
+        +str id
+        +add_pet(pet)
+        +remove_pet(pet_id)
+        +get_pet(pet_id) Pet
+        +get_all_tasks() list~Task~
+        +total_task_count() int
+        +set_preference(key, value)
+    }
+
+    class Scheduler {
+        +Owner owner
+        +list last_skipped
+        +generate_daily_plan(on_date) list
+        +explain_plan(plan) str
+        +check_conflict(task) str
+        +add_task(pet, task) str
+        +filter_tasks(is_complete, pet_name) list~Task~
+        +sort_by_time(tasks)$ list~Task~
+        -_collect_due_tasks(on_date) list~Task~
+        -_rank_tasks(tasks) list~Task~
+        -_fit_to_available_time(ranked) tuple
+        -_find_clash(task, timed)$ Task
+    }
+
+    Owner "1" *-- "*" Pet : owns
+    Pet "1" *-- "*" Task : needs
+    Scheduler --> Owner : plans for
+    Scheduler ..> Task : schedules
+    Scheduler ..> Pet : adds tasks to
+    Task ..> Task : next_occurrence creates

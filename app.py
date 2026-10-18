@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import date, time
 
 import streamlit as st
 
@@ -156,38 +156,144 @@ else:
 
 if owner.total_task_count():
     st.write(f"Current tasks ({owner.total_task_count()} total):")
-    st.table(
-        [
-            {
-                "Pet": pet.name,
-                "Task": task.title,
-                "Category": task.category,
-                "Minutes": task.duration_minutes,
-                "Priority": PRIORITY_NAMES[task.priority],
-                "Time": format_time(task.start_time) if task.start_time else "Anytime",
-            }
-            for pet in owner.pets
-            for task in pet.tasks
-        ]
+
+    # Original table, replaced by the filtered version below:
+    # st.table(
+    #     [
+    #         {
+    #             "Pet": pet.name,
+    #             "Task": task.title,
+    #             "Category": task.category,
+    #             "Minutes": task.duration_minutes,
+    #             "Priority": PRIORITY_NAMES[task.priority],
+    #             "Time": format_time(task.start_time) if task.start_time else "Anytime",
+    #         }
+    #         for pet in owner.pets
+    #         for task in pet.tasks
+    #     ]
+    # )
+
+    ALL_PETS = "All pets"
+    filter_pet_id = st.selectbox(
+        "Filter by pet",
+        [ALL_PETS] + [pet.id for pet in owner.pets],
+        format_func=lambda pid: pid if pid == ALL_PETS else owner.get_pet(pid).name,
     )
+    shown_pets = owner.pets if filter_pet_id == ALL_PETS else [owner.get_pet(filter_pet_id)]
+
+    pending_only = st.checkbox("Pending only")
+
+    # Previous filtered table (no way to mark tasks done), replaced by the checkbox rows below:
+    # if any(pet.tasks for pet in shown_pets):
+    #     st.table(
+    #         [
+    #             {
+    #                 "Pet": pet.name,
+    #                 "Task": task.title,
+    #                 "Category": task.category,
+    #                 "Minutes": task.duration_minutes,
+    #                 "Priority": PRIORITY_NAMES[task.priority],
+    #                 "Time": format_time(task.start_time) if task.start_time else "Anytime",
+    #             }
+    #             for pet in shown_pets
+    #             for task in pet.tasks
+    #         ]
+    #     )
+    # else:
+    #     st.info("No tasks for this pet yet.")
+
+    rows = [
+        (pet, task)
+        for pet in shown_pets
+        for task in (pet.get_pending_tasks() if pending_only else pet.tasks)
+    ]
+    if rows:
+        header = st.columns([1, 2, 3, 2, 1, 2, 2])
+        for col, label in zip(
+            header, ["Done", "Pet", "Task", "Category", "Min", "Priority", "Time"]
+        ):
+            col.markdown(f"**{label}**")
+        for pet, task in rows:
+            cols = st.columns([1, 2, 3, 2, 1, 2, 2])
+            done = cols[0].checkbox(
+                f"Mark {task.title} done",
+                value=task.is_complete,
+                key=f"done_{task.id}",
+                label_visibility="collapsed",
+            )
+            if done != task.is_complete:
+                task.mark_complete() if done else task.reset()
+                st.rerun()
+            cols[1].write(pet.name)
+            cols[2].write(f"~~{task.title}~~" if task.is_complete else task.title)
+            cols[3].write(task.category)
+            cols[4].write(task.duration_minutes)
+            cols[5].write(PRIORITY_NAMES[task.priority])
+            cols[6].write(format_time(task.start_time) if task.start_time else "Anytime")
+    elif pending_only:
+        st.success("Nothing pending. All tasks are done!")
+    else:
+        st.info("No tasks for this pet yet.")
 else:
     st.info("No tasks yet. Add one above.")
 
 st.divider()
 
 st.subheader("Build Schedule")
-st.caption("This button should call your scheduling logic once you implement it.")
+# Original starter code, replaced by the Scheduler wiring below:
+# st.caption("This button should call your scheduling logic once you implement it.")
+#
+# if st.button("Generate schedule"):
+#     st.warning(
+#         "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
+#     )
+#     st.markdown(
+#         """
+# Suggested approach:
+# 1. Design your UML (draft).
+# 2. Create class stubs (no logic).
+# 3. Implement scheduling behavior.
+# 4. Connect your scheduler here and display results.
+# """
+#     )
+
+st.caption("Plans due and past-due tasks to fit the minutes you have available.")
+
+plan_date = st.date_input("Plan for", value=date.today())
 
 if st.button("Generate schedule"):
-    st.warning(
-        "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-    )
-    st.markdown(
-        """
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
+    if not owner.total_task_count():
+        st.warning("Add at least one task before generating a schedule.")
+    else:
+        scheduler = Scheduler(owner)
+        plan = scheduler.generate_daily_plan(plan_date)
+        used = sum(task.duration_minutes for task, _ in plan)
+
+        st.metric("Minutes planned", f"{used} / {owner.available_minutes}")
+        if plan:
+            st.success(f"Scheduled {len(plan)} task(s).")
+            st.table(
+                [
+                    {
+                        "Time": format_time(task.start_time) if task.start_time else "Anytime",
+                        "Pet": owner.get_pet(task.pet_id).name if owner.get_pet(task.pet_id) else "",
+                        "Task": task.title,
+                        "Minutes": task.duration_minutes,
+                        "Why": reason,
+                    }
+                    for task, reason in plan
+                ]
+            )
+            with st.expander("Plan as text"):
+                st.text(scheduler.explain_plan(plan))
+        else:
+            st.info("No tasks could be scheduled.")
+
+        if scheduler.last_skipped:
+            st.warning(f"{len(scheduler.last_skipped)} task(s) was found to be in conflict with another:")
+            st.table(
+                [
+                    {"Task": task.title, "Minutes": task.duration_minutes, "Reason": reason}
+                    for task, reason in scheduler.last_skipped
+                ]
+            )
