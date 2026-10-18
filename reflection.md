@@ -5,7 +5,13 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
+    The initail thought here would be to have a class call owner that has a pet, and a pet class that is assign to an owner.
+    we alse need to be able to track the task each owner must complete each day
+
 - What classes did you include, and what responsibilities did you assign to each?
+    Two main clases for an app like thise would be a user/owner class and a pet class
+    User/Owner - Has a pet, name, can add, create and edit tasks, user can have many pets
+    Pet - Has a name
 
 **b. Design changes**
 
