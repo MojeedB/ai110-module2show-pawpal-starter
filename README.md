@@ -73,9 +73,6 @@ pytest
 pytest --cov
 ```
 
-Sample test output:
-
-```
 # Paste your pytest output here
 The test covers 
 sorting         -   returns clock order.
@@ -88,7 +85,7 @@ Occurence       -   Daily adds 1 day and weekly adds 7.
 Conflict check  -   Overlaps are flagged, both for the same pet and across pets.
                     Back-to-back tasks (8:00–8:30, then 8:30) don't conflict.
                     Different due dates don't conflict, but a task with no due date matches any date.
-
+```
 $ python -m pytest
 =================================================================== test session starts ====================================================================
 platform win32 -- Python 3.14.7, pytest-9.1.1, pluggy-1.7.0
@@ -116,10 +113,13 @@ tests\test_pawpal.py .........................                                  
 
 Describe your app in numbered steps so a reader can follow along without watching a video:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. Enter UserName, and time to be allocated.
+2. Enter Pet Name, pet species pet age. Click Add Pet
+3. Pet info will be displayed in a table along the the number of tasks to do for that pet.
+4. Add more pets if needed
+5. To add tasks, select the respective pet and fill in the task to be completed. Name, Title, task duration, category of task, priority. optionaly a fixed time can be added for task that should be completed at a specific time.
+6. Filter by pet to see tasks added for each pet or all
+7. Click generate schedule to see all task sorted by time.
+8. Check the completed button to remove a task the click generate to see updated schedule.
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->

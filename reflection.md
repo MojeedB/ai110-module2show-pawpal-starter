@@ -88,11 +88,15 @@
 **a. What went well**
 
 - What part of this project are you most satisfied with?
+    Generating the scheduling was satisfactory, the logic is fine as is but can always be improved
 
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
+    I would rebuild most of the logic and redesign the filtering and sorying logic. 
+    Improve more quality of life features
 
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+    Not to let the AI run away with the code, it implemented some nice things but was trying to get ahead of itself in other places.
