@@ -67,13 +67,20 @@
 **a. What you tested**
 
 - What behaviors did you test?
+    Scheduling 
+    Task status
+    Priority
+    conflict check
+    next occurence
 - Why were these tests important?
-
+    These make up a good portion of the app's logic, we want to make sure that tasks can be added in the correct order and completed without throwing errors, we also want to make sure there are no cases where the app crashes as a result of invalid edge cases.
+    
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
+    Confidence level is about a 3.5, i would like to review more of the code to make sure this work as expected.
 - What edge cases would you test next if you had more time?
-
+    I'm not certain the recurrence method handels completeing of tasks that are over due.
 ---
 
 ## 5. Reflection

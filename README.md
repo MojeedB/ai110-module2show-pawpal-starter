@@ -77,6 +77,28 @@ Sample test output:
 
 ```
 # Paste your pytest output here
+The test covers 
+sorting         -   returns clock order.
+                    Tasks with no start time go last.
+                    Midnight and an empty list work.
+Occurence       -   Daily adds 1 day and weekly adds 7.
+                    Non-recurring tasks return None.
+                    It rolls over a month boundary (Jan 31 to Feb 1).
+                    Completing a task twice doesn't create a duplicate.
+Conflict check  -   Overlaps are flagged, both for the same pet and across pets.
+                    Back-to-back tasks (8:00–8:30, then 8:30) don't conflict.
+                    Different due dates don't conflict, but a task with no due date matches any date.
+
+$ python -m pytest
+=================================================================== test session starts ====================================================================
+platform win32 -- Python 3.14.7, pytest-9.1.1, pluggy-1.7.0
+rootdir: C:\Codepath\Pawpal\.venv\ai110-module2show-pawpal-starter
+plugins: anyio-4.15.1
+collected 25 items                                                                                                                                          
+
+tests\test_pawpal.py .........................                                                                                                        [100%]
+
+==================================================================== 25 passed in 0.51s ====================================================================
 ```
 
 ## 📐 Smarter Scheduling
