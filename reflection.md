@@ -12,11 +12,15 @@
     Two main clases for an app like thise would be a user/owner class and a pet class
     User/Owner - Has a pet, name, can add, create and edit tasks, user can have many pets
     Pet - Has a name
+    Task class keeps track of tasks to do for pets, priorities and completion
 
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+    We identify issues with validation and unique values in the attributes of the classes so 
+    unique ID was added to the classes. This should allow for duplicate names of users and pets while 
+    keeping the object unique and remove ambiguity and potential errors.
 
 ---
 
@@ -39,12 +43,18 @@
 **a. How you used AI**
 
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
+    Cluade was used to design and brainstorm the unl design and implementation. It was also used to explain concepts
+    and syntax that was unfamiliar like the Python Dataclass
 - What kinds of prompts or questions were most helpful?
+    Code review prompts were very helpful, for example i had to check if i was keeping track of the number of tasks
+    each pet had and claude was able to review pawpal_system.py and give me a definitive answer.
 
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
+    The initial implementations of the code did not include a dedicated time for the tasks so this was rejected and i added time specific tasks.
 - How did you evaluate or verify what the AI suggested?
+    i reviewed the logic of the code and tested the results without completeing relying on what claude had written.
 
 ---
 
