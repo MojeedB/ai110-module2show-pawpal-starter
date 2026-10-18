@@ -60,7 +60,8 @@ Paste a sample of your app's CLI or Streamlit output here so a reader can see wh
 #   ...
 ```
 
-
+## Implementation Summary 
+    The program is a daily care planner for pets and their owners. An Owner has a list of pets, and each pet has its own tasks, such as feeding or walking, that the owner needs to complete. The Scheduler gathers the tasks that are due, ranks them by priority, and fits them into the owner's available time, placing timed tasks at their set time. It then explains the resulting plan, grouped by pet, including why any task was skipped.
 
 ## 🧪 Testing PawPal+
 
